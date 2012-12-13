@@ -1,17 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:orientation="vertical"
-                  android:layout_width="fill_parent"
-                  android:layout_height="fill_parent"
-                  android:id="@+id/displayLayout">
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:id="@+id/displayLayout">
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Calibrate" 
         android:id="@+id/calibrateButton"
-        android:onClick="onClickCalibrate"
-        />
-       
+        android:onClick="onClickCalibrate" />
+    <LinearLayout android:orientation="horizontal"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:id="@+id/spinnerLayout">
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content" 
+                  android:layout_gravity="center_vertical"
+                  android:text="Action"
+                  android:textSize="15sp"
+                  android:textStyle="bold"/>
+        <Spinner
+            android:id="@+id/labelSpinner"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+    
+    </LinearLayout>
+    
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Start Collecting" 
+        android:id="@+id/collectButton"
+        android:onClick="onClickStartCollecting" />   
+    
+    <ProgressBar android:indeterminate="true"
+            android:layout_width="100dp" android:layout_height="100dp"
+            android:id="@+id/marker_progress" style="?android:attr/progressBarStyle"
+            android:layout_gravity="center_vertical|center_horizontal"/>
         
         
 </LinearLayout>
