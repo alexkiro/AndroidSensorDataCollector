@@ -1,21 +1,28 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package hymas.m1.hardware;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OptionalDataException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Chirila Alexandru
  */
-public class NoiseReduction {
+public class NoiseReduction implements Serializable {
 
     private Map<Integer, SensorNoiseReductor> map;
 
@@ -29,33 +36,91 @@ public class NoiseReduction {
     public void addEvent(SensorEvent se) {
         map.get(se.sensor.getType()).add(se);
     }
-    
-    public void calculateNoise(){
+
+    public void calculateNoise() {
         for (Map.Entry<Integer, SensorNoiseReductor> entry : map.entrySet()) {
             entry.getValue().computeMean();
             entry.getValue().computeMaximumDeviation();
         }
     }
-    
-    public boolean filter(SensorEvent se){
+
+    public boolean filter(SensorEvent se) {
         return map.get(se.sensor.getType()).check(se);
     }
 
-    private class SensorNoiseReductor {
+    public static void serialize(File file, NoiseReduction obj) {
+        try {
+            FileOutputStream fileOut = new FileOutputStream(file);
+            serialize(fileOut, obj);
+            fileOut.close();
+        } catch (IOException ex) {
+            Logger.getLogger(NoiseReduction.class.getName()).log(Level.SEVERE, null, ex);        
+        }
+    }
 
-        private List<SensorEvent> data = new LinkedList<SensorEvent>();
+    public static void serialize(FileOutputStream fileOut, NoiseReduction obj) {
+        try {            
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(obj);
+            out.close();
+            fileOut.close();
+        } catch (IOException ex) {
+            Logger.getLogger(NoiseReduction.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    
+    public static NoiseReduction deserialize(File file) {
+        FileInputStream fileIn = null;
+        try {
+            fileIn = new FileInputStream(file);
+            return deserialize(fileIn);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(NoiseReduction.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                fileIn.close();
+            } catch (IOException ex) {
+                Logger.getLogger(NoiseReduction.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        return null;
+    }
+    
+    
+    public static NoiseReduction deserialize(FileInputStream fileIn){
+        try {
+            NoiseReduction result;            
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            result = (NoiseReduction) in.readObject();
+            in.close();
+            fileIn.close();
+            return result;
+        } catch (OptionalDataException ex) {
+            Logger.getLogger(NoiseReduction.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(NoiseReduction.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(NoiseReduction.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    private class SensorNoiseReductor implements Serializable {
+
+        private transient List<SensorEvent> data = new LinkedList<SensorEvent>();
         private int n;
         private double[] mean;
         private double[] deviation;
-        private SensorEvent last = null;
-        
-        public boolean check(SensorEvent se){
-            if (last == null){
+        private transient SensorEvent last = null;
+
+        public boolean check(SensorEvent se) {
+            if (last == null) {
                 last = se;
                 return true;
             } else {
                 for (int i = 0; i < n; i++) {
-                    if (Math.abs(last.values[i] - se.values[i]) > deviation[i]){
+                    if (Math.abs(last.values[i] - se.values[i]) > deviation[i]) {
                         last = se;
                         return true;
                     }
@@ -64,7 +129,7 @@ public class NoiseReduction {
                 return false;
             }
         }
-        
+
         public void add(SensorEvent se) {
             if (data.isEmpty()) {
                 n = se.values.length;
@@ -72,8 +137,8 @@ public class NoiseReduction {
             }
             data.add(se);
         }
-        
-        public void initialize(){
+
+        public void initialize() {
             mean = new double[n];
             deviation = new double[n];
         }
@@ -101,23 +166,21 @@ public class NoiseReduction {
                 System.err.println(deviation[i]);
             }
         }
-        
-        public void computeMaximumDeviation(){
-            if (data.isEmpty()){
-                n=3;
+
+        public void computeMaximumDeviation() {
+            if (data.isEmpty()) {
+                n = 3;
                 initialize();
                 return;
             }
             for (SensorEvent sensorEvent : data) {
                 for (int i = 0; i < n; i++) {
                     double dev = Math.abs(mean[i] - sensorEvent.values[i]);
-                    if (dev > deviation[i]){
+                    if (dev > deviation[i]) {
                         deviation[i] = dev;
                     }
                 }
             }
         }
-        
-        
     }
 }

@@ -24,12 +24,19 @@
         android:id="@+id/startTesting"
         android:onClick="onClickStartTesting" />       
     
-     <Button
+    <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Save Calibration" 
         android:id="@+id/saveCalibration"
         android:onClick="onClickSaveCalibration" />     
+     
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Delete Calibration File" 
+        android:id="@+id/deleteCalibration"
+        android:onClick="onClickDeleteCalibration" />
     
 
 </LinearLayout>

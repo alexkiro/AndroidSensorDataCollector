@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package hymas.m1.hardware;
 
 import android.app.Activity;
@@ -10,8 +6,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import collecter.Collecter;
-import collecter.Label;
+import hymas.m1.collecter.Collecter;
+import hymas.m1.collecter.Label;
 import hymas.m1.view.SensorObserver;
 import java.io.File;
 import java.util.List;
@@ -179,7 +175,7 @@ public class SensorCapture {
         }
         if (coll != null) {
             coll.stopCollecting();
-        }
+        }        
     }
 
     public static List<Sensor> getSensorList(Context ct) {

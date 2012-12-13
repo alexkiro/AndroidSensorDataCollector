@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package hymas.m1.view;
 
 import android.content.Context;
@@ -15,7 +11,7 @@ import java.util.Map;
 
 /**
  *
- * @author kiro
+ * @author Chirila Alexandru
  */
 public class SensorObserver {
     private Map<Integer, TextView> map = new HashMap<Integer, TextView>();

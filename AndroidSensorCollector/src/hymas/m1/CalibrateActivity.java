@@ -1,10 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package hymas.m1;
 
 import android.app.Activity;
+import android.content.Context;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.View;
@@ -14,15 +11,19 @@ import android.widget.Toast;
 import hymas.m1.hardware.NoiseReduction;
 import hymas.m1.hardware.SensorCapture;
 import hymas.m1.view.SensorObserver;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
- * @author kiro
+ * @author Chirila Alexandru
  */
 public class CalibrateActivity extends Activity {
 
     private SensorObserver obs;
-    private NoiseReduction nr;
+    private NoiseReduction nr = null;
     private SensorCapture tsc = null;
     private SensorCapture trainSC = null;
 
@@ -35,6 +36,12 @@ public class CalibrateActivity extends Activity {
         setContentView(R.layout.calibrate);
         LinearLayout layout = (LinearLayout) findViewById(R.id.calibrateLayout);
         obs = SensorObserver.createObserver(this, SensorCapture.getSensorList(this), layout);
+        try {
+            nr = NoiseReduction.deserialize(openFileInput("nr.obj"));
+            System.err.println("nr = " + nr);
+        } catch (FileNotFoundException ex) {
+            nr = null;            
+        }
     }
 
     
@@ -90,10 +97,19 @@ public class CalibrateActivity extends Activity {
     
     public void onClickSaveCalibration(View view) {
         if (nr != null){
-            //@TODO: serialize to file
-            finish();
+            try {
+                FileOutputStream fileOut = openFileOutput("nr.obj", Context.MODE_PRIVATE);
+                NoiseReduction.serialize(fileOut, nr);
+                finish();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(CalibrateActivity.class.getName()).log(Level.SEVERE, null, ex);
+            }
         } else {
             Toast.makeText(this, "No current calibration", Toast.LENGTH_SHORT).show();
         }
+    }
+    
+    public void onClickDeleteCalibration(View view) {
+        deleteFile("nr.obj");
     }
 }

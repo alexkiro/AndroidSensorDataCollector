@@ -1,4 +1,4 @@
-package collecter;
+package hymas.m1.collecter;
 
 /**
  *
