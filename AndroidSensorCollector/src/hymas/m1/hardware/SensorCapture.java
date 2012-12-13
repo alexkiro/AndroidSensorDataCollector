@@ -6,6 +6,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import hymas.m1.collecter.Collecter;
 import hymas.m1.collecter.Label;
 import hymas.m1.view.SensorObserver;
@@ -21,6 +25,7 @@ import java.util.logging.Logger;
 public class SensorCapture {
 
     private SensorManager sm;
+    private LocationManager lm;
     private Activity ct;
     private Collecter coll = null;
     private List<Sensor> sensorList;
@@ -112,11 +117,31 @@ public class SensorCapture {
         public void onAccuracyChanged(Sensor sensor, int i) {
         }
     };
+    private LocationListener llToFile = new LocationListener() {
+        public void onLocationChanged(Location loc) {
+            try {
+                coll.addGpsData(loc.getLatitude(), loc.getLongitude(),
+                        loc.getAltitude(), loc.getBearing(),
+                        loc.getAccuracy(), loc.getTime());
+            } catch (NullPointerException ex) {
+            }
+        }
+
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+        public void onProviderEnabled(String provider) {
+        }
+
+        public void onProviderDisabled(String provider) {
+        }
+    };
 
     public SensorCapture(Activity ct) {
         this.ct = ct;
         sm = (SensorManager) ct.getSystemService(Context.SENSOR_SERVICE);
         sensorList = sm.getSensorList(Sensor.TYPE_ALL);
+        lm = (LocationManager) ct.getSystemService(Context.LOCATION_SERVICE);
     }
 
     public SensorCapture(Activity ct, SensorObserver so) {
@@ -162,20 +187,28 @@ public class SensorCapture {
         }).start();
     }
 
-    public void startCaptureAllToFile(File file, Label action, int rate) {
+    public void startCaptureAllToFile(File file, Label action, boolean gps, int rate) {
         coll = new Collecter(file, action);
         coll.startCollecting();
         sl = slToFile;
-        startCaptureAll(rate);
+        startCaptureAll(rate);        
+        if (gps == true && lm.getProvider(LocationManager.GPS_PROVIDER) != null){
+            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, llToFile);
+        } else if (lm.getProvider(LocationManager.NETWORK_PROVIDER) != null){
+            lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, llToFile);
+        } else {
+            lm.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 0, 0, llToFile);
+        }
     }
 
     public void stopCapture() {
         for (Sensor sensor : sensorList) {
             sm.unregisterListener(sl, sensor);
         }
+        lm.removeUpdates(llToFile);
         if (coll != null) {
             coll.stopCollecting();
-        }        
+        }
     }
 
     public static List<Sensor> getSensorList(Context ct) {

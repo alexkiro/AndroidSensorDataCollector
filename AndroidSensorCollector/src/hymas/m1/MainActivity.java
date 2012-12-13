@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CheckedTextView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import hymas.m1.collecter.Label;
@@ -26,6 +28,7 @@ public class MainActivity extends Activity {
     private Spinner spin;
     private Button button;
     private ProgressBar progress;
+    private CheckBox gps;
 
     /**
      * Called when the activity is first created.
@@ -38,7 +41,7 @@ public class MainActivity extends Activity {
         button = (Button) findViewById(R.id.collectButton);
         progress = (ProgressBar) findViewById(R.id.marker_progress);
         progress.setVisibility(View.INVISIBLE);
-        
+        gps = (CheckBox) findViewById(R.id.checkGps);                
 
         spin = (Spinner) findViewById(R.id.labelSpinner);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
@@ -72,7 +75,7 @@ public class MainActivity extends Activity {
 
             sc = new SensorCapture(this, obs);
             sc.setFilter(nr);
-            sc.startCaptureAllToFile(newFile, label, SensorManager.SENSOR_DELAY_NORMAL);
+            sc.startCaptureAllToFile(newFile, label, gps.isChecked(), SensorManager.SENSOR_DELAY_NORMAL);
 
             button.setText("Stop Collecting");
             progress.setVisibility(View.VISIBLE);

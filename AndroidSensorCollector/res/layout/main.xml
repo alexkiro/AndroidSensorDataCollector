@@ -34,10 +34,26 @@
         android:id="@+id/collectButton"
         android:onClick="onClickStartCollecting" />   
     
+    <LinearLayout android:orientation="horizontal"
+                  android:layout_width="fill_parent"
+                  android:layout_height="wrap_content"
+                  android:id="@+id/checkLayout">
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content" 
+                  android:layout_gravity="center_vertical"
+                  android:text="GPS"
+                  android:textSize="30sp"
+                  android:textStyle="bold"/>
+        <CheckBox android:id="@+id/checkGps"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content" />
+    
+    </LinearLayout>
+    
     <ProgressBar android:indeterminate="true"
-            android:layout_width="100dp" android:layout_height="100dp"
-            android:id="@+id/marker_progress" style="?android:attr/progressBarStyle"
-            android:layout_gravity="center_vertical|center_horizontal"/>
+                 android:layout_width="100dp" android:layout_height="100dp"
+                 android:id="@+id/marker_progress" style="?android:attr/progressBarStyle"
+                 android:layout_gravity="center_vertical|center_horizontal"/>
         
         
 </LinearLayout>
