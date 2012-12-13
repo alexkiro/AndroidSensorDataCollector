@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+              android:id="@+id/calibrateLayout">
+    <TextView
+        android:text="Position your device on a flat surface and press the button. Calibration will take about 20-30 seconds" 
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView1"/>
+    
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Start Calibrating" 
+        android:id="@+id/startCalibrating"
+        android:onClick="onClickStartCalibrating" />       
+    
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Sensors" 
+        android:id="@+id/startTesting"
+        android:onClick="onClickStartTesting" />       
+    
+     <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Save Calibration" 
+        android:id="@+id/saveCalibration"
+        android:onClick="onClickSaveCalibration" />     
+    
+
+</LinearLayout>

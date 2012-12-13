@@ -7,17 +7,11 @@
     <Button
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Start Collecting" 
-        android:id="@+id/startCollecting"
-        android:onClick="onClickStartCollecting" />
-        
-    <Button
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="Stop Collecting" 
-        android:id="@+id/stopCollecting"
-        android:onClick="onClickStopCollecting" />
-        
+        android:text="Calibrate" 
+        android:id="@+id/calibrateButton"
+        android:onClick="onClickCalibrate"
+        />
+       
         
         
 </LinearLayout>

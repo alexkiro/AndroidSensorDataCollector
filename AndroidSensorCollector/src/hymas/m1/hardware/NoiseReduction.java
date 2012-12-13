@@ -33,7 +33,7 @@ public class NoiseReduction {
     public void calculateNoise(){
         for (Map.Entry<Integer, SensorNoiseReductor> entry : map.entrySet()) {
             entry.getValue().computeMean();
-            entry.getValue().computeAbsoluteAverageDeviation();
+            entry.getValue().computeMaximumDeviation();
         }
     }
     
@@ -90,20 +90,24 @@ public class NoiseReduction {
         }
 
         public void computeAbsoluteAverageDeviation() {
-            computeMaximumDeviation();
-//            for (SensorEvent sensorEvent : data) {
-//                for (int i = 0; i < n; i++) {
-//                    deviation[i] += Math.abs(mean[i] - sensorEvent.values[i]);
-//                }
-//            }
-//            System.err.println(data.get(0).sensor.getName());
-//            for (int i = 0; i < n; i++) {
-//                deviation[i] = mean[i] / data.size();
-//                System.err.println(deviation[i]);
-//            }
+            for (SensorEvent sensorEvent : data) {
+                for (int i = 0; i < n; i++) {
+                    deviation[i] += Math.abs(mean[i] - sensorEvent.values[i]);
+                }
+            }
+            System.err.println(data.get(0).sensor.getName());
+            for (int i = 0; i < n; i++) {
+                deviation[i] = mean[i] / data.size();
+                System.err.println(deviation[i]);
+            }
         }
         
         public void computeMaximumDeviation(){
+            if (data.isEmpty()){
+                n=3;
+                initialize();
+                return;
+            }
             for (SensorEvent sensorEvent : data) {
                 for (int i = 0; i < n; i++) {
                     double dev = Math.abs(mean[i] - sensorEvent.values[i]);
@@ -113,5 +117,7 @@ public class NoiseReduction {
                 }
             }
         }
+        
+        
     }
 }

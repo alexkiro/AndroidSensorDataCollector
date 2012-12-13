@@ -4,6 +4,7 @@
  */
 package hymas.m1.hardware;
 
+import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,6 +15,8 @@ import collecter.Label;
 import hymas.m1.view.SensorObserver;
 import java.io.File;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -22,14 +25,50 @@ import java.util.List;
 public class SensorCapture {
 
     private SensorManager sm;
+    private Activity ct;
     private Collecter coll = null;
     private List<Sensor> sensorList;
     private SensorObserver so = null;
-    private SensorEventListener sl = new SensorEventListener() {
+    private NoiseReduction nr = null;
+    private SensorEventListener sl;
+    private SensorEventListener slTrain = new SensorEventListener() {
+        public void onSensorChanged(SensorEvent event) {
+            if (nr != null) {
+                nr.addEvent(event);
+            }
+            if (so != null) {
+                so.notify(event);
+            }
+        }
+
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+    private SensorEventListener slMonitor = new SensorEventListener() {
+        public void onSensorChanged(SensorEvent se) {
+            if (nr != null) {
+                if (!nr.filter(se)) {
+                    return;
+                }
+            }
+            if (so != null) {
+                so.notify(se);
+            }
+        }
+
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
+    private SensorEventListener slToFile = new SensorEventListener() {
         public void onSensorChanged(SensorEvent se) {
             float[] v = se.values;
             try {
-                if (so != null){
+                if (nr != null) {
+                    if (!nr.filter(se)) {
+                        return;
+                    }
+                }
+                if (so != null) {
                     so.notify(se);
                 }
                 switch (se.sensor.getType()) {
@@ -78,29 +117,59 @@ public class SensorCapture {
         }
     };
 
-    public SensorCapture(Context ct) {
+    public SensorCapture(Activity ct) {
+        this.ct = ct;
         sm = (SensorManager) ct.getSystemService(Context.SENSOR_SERVICE);
         sensorList = sm.getSensorList(Sensor.TYPE_ALL);
     }
-    
-    public SensorCapture(Context ct, SensorObserver so){
+
+    public SensorCapture(Activity ct, SensorObserver so) {
         this(ct);
         this.so = so;
     }
-    
-    public void setEventListener(SensorEventListener sl){
+
+    public void setFilter(NoiseReduction nr) {
+        this.nr = nr;
+    }
+
+    public void setEventListener(SensorEventListener sl) {
         this.sl = sl;
     }
-    
-    public void startCaptureAll(int rate){
+
+    private void startCaptureAll(int rate) {
         for (Sensor sensor : sensorList) {
             sm.registerListener(sl, sensor, rate);
         }
     }
 
+    public void startMonitor(int rate) {
+        sl = slMonitor;
+        startCaptureAll(rate);
+    }
+
+    public void startTrain(NoiseReduction noiseReduction, final long time, final Runnable callBack, int rate) {
+        this.nr = noiseReduction;
+        sl = slTrain;
+        startCaptureAll(rate);
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    Thread.sleep(time);
+                    stopCapture();
+                    Thread.sleep(100);
+                    nr.calculateNoise();
+                    ct.runOnUiThread(callBack);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(SensorCapture.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }).start();
+    }
+
     public void startCaptureAllToFile(File file, Label action, int rate) {
         coll = new Collecter(file, action);
         coll.startCollecting();
+        sl = slToFile;
         startCaptureAll(rate);
     }
 
@@ -108,6 +177,13 @@ public class SensorCapture {
         for (Sensor sensor : sensorList) {
             sm.unregisterListener(sl, sensor);
         }
-        //coll.stopCollecting();
+        if (coll != null) {
+            coll.stopCollecting();
+        }
+    }
+
+    public static List<Sensor> getSensorList(Context ct) {
+        return ((SensorManager) ct.getSystemService(Context.SENSOR_SERVICE))
+                .getSensorList(Sensor.TYPE_ALL);
     }
 }
