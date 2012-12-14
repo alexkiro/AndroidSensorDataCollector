@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CheckedTextView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import hymas.m1.collecter.Label;
@@ -20,6 +19,10 @@ import hymas.m1.view.SensorObserver;
 import java.io.File;
 import java.io.FileNotFoundException;
 
+/**
+ * Handles the main activity of the application
+ * @author kiro
+ */
 public class MainActivity extends Activity {
 
     private SensorCapture sc;
@@ -57,11 +60,23 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Starts the CalibrateActivity
+     * @param v 
+     */
     public void onClickCalibrate(View v) {
         Intent in = new Intent(this, CalibrateActivity.class);
         startActivity(in);
     }
 
+    /**
+     * Starts collecting data to file.
+     * Uses SharedPreferences file "default.pref" to remember the last file number.
+     * The files are saved in SDCard/ANDROID/data/hymas.m1/files/
+     * The files are named data &lt;number%gt;.xml
+     * The number is saved in the preference "currentFile"
+     * @param v 
+     */
     public void onClickStartCollecting(View v) {
         if (sc == null) {
             SharedPreferences sp = getSharedPreferences("default.pref", Context.MODE_PRIVATE);

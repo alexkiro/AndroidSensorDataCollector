@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Implementation of a SensorObserver use to notify a set of TextViews about 
+ * SensorEvents in a SensorCapture object
  * @author Chirila Alexandru
  */
 public class TextViewSensorObserver implements SensorObserver{

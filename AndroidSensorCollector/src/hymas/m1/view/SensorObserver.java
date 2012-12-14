@@ -3,8 +3,8 @@ package hymas.m1.view;
 import android.hardware.SensorEvent;
 
 /**
- *
- * @author kiro
+ * Interface use to notify a GUI about Sensor Events in a SensorCapture object
+ * @author Chirila Alexandru
  */
 public interface SensorObserver {
 

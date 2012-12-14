@@ -19,12 +19,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Hold information about sensors and computes a filter to remove the noise and 
+ * random fluctuation.
  * @author Chirila Alexandru
  */
 public class NoiseReduction implements Serializable {
 
-    private Map<Integer, SensorNoiseReductor> map;
+    private Map<Integer, SensorNoiseReductor> map;  //maps sensor to noise reduction information
 
     public NoiseReduction(List<Sensor> sensors) {
         this.map = new HashMap<Integer, SensorNoiseReductor>();
@@ -33,10 +34,17 @@ public class NoiseReduction implements Serializable {
         }
     }
 
+    /**
+     * Add an event to the training set
+     * @param se 
+     */
     public void addEvent(SensorEvent se) {
         map.get(se.sensor.getType()).add(se);
     }
 
+    /**
+     * Computes the filters for all the sensors
+     */
     public void calculateNoise() {
         for (Map.Entry<Integer, SensorNoiseReductor> entry : map.entrySet()) {
             entry.getValue().computeMean();
@@ -44,6 +52,12 @@ public class NoiseReduction implements Serializable {
         }
     }
 
+    /**
+     * Filters a SensorEvent by comparing it to the last SensorEvent inputed and 
+     * applying a filter.
+     * @param se 
+     * @return False if the new event is consider to be noise, True otherwise
+     */
     public boolean filter(SensorEvent se) {
         return map.get(se.sensor.getType()).check(se);
     }
@@ -108,11 +122,16 @@ public class NoiseReduction implements Serializable {
 
     private class SensorNoiseReductor implements Serializable {
 
-        private transient List<SensorEvent> data = new LinkedList<SensorEvent>();
+        private transient List<SensorEvent> data; //training data
         private int n;
-        private double[] mean;
-        private double[] deviation;
-        private transient SensorEvent last = null;
+        private double[] mean;  // the Arithmetic mean of the data
+        private double[] deviation; // the filter
+        private transient SensorEvent last; //the last inputed event
+
+        private SensorNoiseReductor() {
+            this.last = null;
+            this.data = new LinkedList<SensorEvent>();
+        }
 
         public boolean check(SensorEvent se) {
             if (last == null) {

@@ -20,15 +20,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * This Activity is responsible for the calibrating the noise reduction module.
+ * In order to eliminate sensor fluctuations while the device is stable.
  * @author Chirila Alexandru
  */
 public class CalibrateActivity extends Activity {
 
+    private final long TIME = 20000; //time to run the calibrating algorithm
+    private final int RATE = SensorManager.SENSOR_DELAY_NORMAL;
     private SensorObserver obs;
     private NoiseReduction nr = null;
-    private SensorCapture tsc = null;
-    private SensorCapture trainSC = null;
+    private SensorCapture tsc = null; // test sensor capture, used durring sensor test
+    private SensorCapture trainSC = null; // train sensor capture, used to train a calibrating algorithm
 
     /**
      * Called when the activity is first created.
@@ -59,6 +62,10 @@ public class CalibrateActivity extends Activity {
         }
     }
 
+    /**
+     * Start the calibrating algorithm. While running the buttons are disabled.
+     * @param view 
+     */
     public void onClickStartCalibrating(View view) {
         Toast.makeText(this, "Calibration initialized. Do NOT move the device!", Toast.LENGTH_LONG).show();
         final Button b1 = (Button) findViewById(R.id.startCalibrating);
@@ -71,16 +78,20 @@ public class CalibrateActivity extends Activity {
         b4.setEnabled(false);
         trainSC = new SensorCapture(this, obs);
         nr = new NoiseReduction(SensorCapture.getSensorList(this));
-        trainSC.startTrain(nr, 20000, new Runnable() {
+        trainSC.startTrain(nr, TIME, new Runnable() {
             public void run() {
                 b1.setEnabled(true);
                 b2.setEnabled(true);
                 b3.setEnabled(true);
                 b4.setEnabled(true);
             }
-        }, SensorManager.SENSOR_DELAY_NORMAL);
+        }, RATE);
     }
 
+    /**
+     * Start monitoring the devices with Noise Reduction if available
+     * @param view 
+     */
     public void onClickStartTesting(View view) {
         Button b = (Button) view;
         if (tsc == null) {
@@ -89,7 +100,7 @@ public class CalibrateActivity extends Activity {
             if (nr != null) {
                 tsc.setFilter(nr);
             }
-            tsc.startMonitor(SensorManager.SENSOR_DELAY_NORMAL);
+            tsc.startMonitor(RATE);
             b.setText("Stop Testing");
         } else {
             tsc.stopCapture();
@@ -99,6 +110,10 @@ public class CalibrateActivity extends Activity {
         }
     }
 
+    /**
+     * Saves the calibration to file "nr.obj" internally, and closes the activity.
+     * @param view 
+     */
     public void onClickSaveCalibration(View view) {
         if (nr != null) {
             try {
@@ -113,6 +128,10 @@ public class CalibrateActivity extends Activity {
         }
     }
 
+    /**
+     * Deletes the calibration file and object
+     * @param view 
+     */
     public void onClickDeleteCalibration(View view) {
 
         DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
