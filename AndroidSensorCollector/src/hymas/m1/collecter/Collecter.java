@@ -77,7 +77,7 @@ public class Collecter {
             Transformer transformer = transformerFactory.newTransformer();
             DOMSource source = new DOMSource(doc);
             StreamResult result = new StreamResult(file);
-            transformer.transform(source, result);
+            transformer.transform(source, result);            
         } catch (TransformerException ex) {
             Logger.getLogger(Collecter.class.getName()).log(Level.SEVERE, null, ex);
         }

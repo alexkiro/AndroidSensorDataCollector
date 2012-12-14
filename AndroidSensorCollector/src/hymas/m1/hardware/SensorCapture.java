@@ -10,6 +10,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.SystemClock;
 import hymas.m1.collecter.Collecter;
 import hymas.m1.collecter.Label;
 import hymas.m1.view.SensorObserver;
@@ -72,6 +73,8 @@ public class SensorCapture {
     private final SensorEventListener slToFile = new SensorEventListener() {
         public void onSensorChanged(SensorEvent se) {
             float[] v = se.values;
+            long time = System.currentTimeMillis() - SystemClock.uptimeMillis()
+                    + se.timestamp / 1000000;
             try {
                 if (nr != null) {
                     if (!nr.filter(se)) {
@@ -83,40 +86,40 @@ public class SensorCapture {
                 }
                 switch (se.sensor.getType()) {
                     case Sensor.TYPE_ACCELEROMETER:
-                        coll.addAccelerometerData(v[0], v[1], v[2], se.timestamp);
+                        coll.addAccelerometerData(v[0], v[1], v[2], time);
                         break;
                     case Sensor.TYPE_AMBIENT_TEMPERATURE:
-                        coll.addAmbientTemperatureData(v[0], se.timestamp);
+                        coll.addAmbientTemperatureData(v[0], time);
                         break;
                     case Sensor.TYPE_GRAVITY:
-                        coll.addGravityData(v[0], v[1], v[2], se.timestamp);
+                        coll.addGravityData(v[0], v[1], v[2], time);
                         break;
                     case Sensor.TYPE_GYROSCOPE:
-                        coll.addGyroscopeData(v[0], v[1], v[2], se.timestamp);
+                        coll.addGyroscopeData(v[0], v[1], v[2], time);
                         break;
                     case Sensor.TYPE_LIGHT:
-                        coll.addLightData(v[0], se.timestamp);
+                        coll.addLightData(v[0], time);
                         break;
                     case Sensor.TYPE_LINEAR_ACCELERATION:
-                        coll.addLinearAccelerationData(v[0], v[1], v[2], se.timestamp);
+                        coll.addLinearAccelerationData(v[0], v[1], v[2], time);
                         break;
                     case Sensor.TYPE_MAGNETIC_FIELD:
-                        coll.addMagneticFieldData(v[0], v[1], v[2], se.timestamp);
+                        coll.addMagneticFieldData(v[0], v[1], v[2], time);
                         break;
                     case Sensor.TYPE_PRESSURE:
-                        coll.addPressureData(v[0], se.timestamp);
+                        coll.addPressureData(v[0], time);
                         break;
                     case Sensor.TYPE_PROXIMITY:
-                        coll.addProximityData(v[0], se.timestamp);
+                        coll.addProximityData(v[0], time);
                         break;
                     case Sensor.TYPE_RELATIVE_HUMIDITY:
-                        coll.addRelativeHumidityData(v[0], se.timestamp);
+                        coll.addRelativeHumidityData(v[0], time);
                         break;
                     case Sensor.TYPE_ROTATION_VECTOR:
-                        coll.addVectorRotationData(v[0], v[1], v[2], se.timestamp);
+                        coll.addVectorRotationData(v[0], v[1], v[2], time);
                         break;
                     case Sensor.TYPE_TEMPERATURE:
-                        coll.addAmbientTemperatureData(v[0], se.timestamp);
+                        coll.addAmbientTemperatureData(v[0], time);
                         break;
                 }
             } catch (NullPointerException ex) {
@@ -176,7 +179,8 @@ public class SensorCapture {
     /**
      * Sets the filter pass for this object. Will be applied to all monitoring
      * session, except the training one.
-     * @param nr 
+     *
+     * @param nr
      */
     public void setFilter(NoiseReduction nr) {
         this.nr = nr;
@@ -184,17 +188,18 @@ public class SensorCapture {
 
     /**
      * Can be use to provide a custom made SensorEventListener for all Sensors.
-     * @param sl 
+     *
+     * @param sl
      */
     public void setEventListener(SensorEventListener sl) {
         this.sl = sl;
     }
-    
-    
+
     /**
-     * Starts capturing with the current set SensorEventListener. 
-     * Before calling this method, you should call setEventListner
-     * @param rate 
+     * Starts capturing with the current set SensorEventListener. Before calling
+     * this method, you should call setEventListner
+     *
+     * @param rate
      */
     public void startCaptureAll(int rate) {
         for (Sensor sensor : sensorList) {
@@ -204,7 +209,8 @@ public class SensorCapture {
 
     /**
      * Starts monitoring and notifying the observer for any sensor changes
-     * @param rate 
+     *
+     * @param rate
      */
     public void startMonitor(int rate) {
         sl = slMonitor;
@@ -213,10 +219,12 @@ public class SensorCapture {
 
     /**
      * Start training a NoiseReduction algorithm.
+     *
      * @param noiseReduction - the algorithm
      * @param time - the duration of the training
-     * @param callBack - to be ran on the activity thread after the operation was completed
-     * @param rate - the rate of sensor data collecting 
+     * @param callBack - to be ran on the activity thread after the operation
+     * was completed
+     * @param rate - the rate of sensor data collecting
      */
     public void startTrain(NoiseReduction noiseReduction, final long time, final Runnable callBack, int rate) {
         this.nr = noiseReduction;
@@ -238,13 +246,13 @@ public class SensorCapture {
     }
 
     /**
-     * Starts capturing all data to file (including GPS)
-     * If GPS is not present, it will try to use a NETWORK_PROVIDER or a 
-     * PASSIVE_PROVIDER.
+     * Starts capturing all data to file (including GPS) If GPS is not present,
+     * it will try to use a NETWORK_PROVIDER or a PASSIVE_PROVIDER.
+     *
      * @param file - the file
      * @param action - the current action
      * @param gps - true if gps is present
-     * @param rate 
+     * @param rate
      */
     public void startCaptureAllToFile(File file, Label action, boolean gps, int rate) {
         coll = new Collecter(file, action);
@@ -261,22 +269,35 @@ public class SensorCapture {
     }
 
     /**
-     * Stops the current capture
+     * Stops the current capture and save to file if necessary
      */
     public void stopCapture() {
+        stopCapture(true);
+    }
+
+    /**
+     * Stops the current capture
+     * @param save if true save to file, else discard
+     */
+    public void stopCapture(boolean save) {
         for (Sensor sensor : sensorList) {
             sm.unregisterListener(sl, sensor);
         }
         lm.removeUpdates(llToFile);
-        if (coll != null) {
-            coll.stopCollecting();
+        if (save) {
+            if (coll != null) {
+                coll.stopCollecting();
+            }
+        } else {
+            coll = null;
         }
     }
 
     /**
      * Gets all available sensor from the given context
+     *
      * @param ct
-     * @return 
+     * @return
      */
     public static List<Sensor> getSensorList(Context ct) {
         return ((SensorManager) ct.getSystemService(Context.SENSOR_SERVICE))
