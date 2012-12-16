@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.view.View;
@@ -12,6 +13,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.Toast;
 import hymas.m1.collecter.Label;
 import hymas.m1.hardware.NoiseReduction;
 import hymas.m1.hardware.SensorCapture;
@@ -69,6 +71,19 @@ public class MainActivity extends Activity {
             System.err.println("nr = " + nr);
         } catch (FileNotFoundException ex) {
             nr = null;
+        }
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        // Rindurile de mai jos pot fi excluse
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
+            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
         }
     }
 
