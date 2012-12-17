@@ -1,19 +1,22 @@
 package hymas.m1;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Toast;
 import hymas.m1.collecter.Label;
 import hymas.m1.hardware.NoiseReduction;
 import hymas.m1.hardware.SensorCapture;
@@ -39,6 +42,7 @@ public class MainActivity extends Activity {
     private Button button;
     private ProgressBar progress;
     private CheckBox gps;
+    private PowerManager.WakeLock wakeLock;
 
     /**
      * Called when the activity is first created.
@@ -46,6 +50,16 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN 
+        		| WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+        		| WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+        		| WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+        		, WindowManager.LayoutParams.FLAG_FULLSCREEN
+        		| WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+        		| WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+        		| WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        
         setContentView(R.layout.main);
 
         button = (Button) findViewById(R.id.collectButton);
@@ -75,16 +89,16 @@ public class MainActivity extends Activity {
     }
     
     @Override
+    protected void onStop() {
+    	super.onStop();
+    	if (wakeLock != null) {
+    		wakeLock.release();
+    	}
+    }
+    
+    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-
-        // Checks the orientation of the screen
-        // Rindurile de mai jos pot fi excluse
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
-        }
     }
 
     /**
@@ -105,10 +119,15 @@ public class MainActivity extends Activity {
      *
      * @param v
      */
-    public void onClickStartCollecting(View v) {
+    @TargetApi(Build.VERSION_CODES.FROYO) public void onClickStartCollecting(View v) {
         SharedPreferences sp = getSharedPreferences("default.pref", Context.MODE_PRIVATE);
         int currentFile = sp.getInt("currentFile", 0);
         if (sc == null) {
+        	
+        	PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "My Tag");
+        	wakeLock.acquire();
+        	
             Label label = Label.valueOf((String) labelSpin.getSelectedItem());
 
             File dir = getExternalFilesDir(null);
@@ -121,7 +140,10 @@ public class MainActivity extends Activity {
             button.setText("Stop Collecting");
             progress.setVisibility(View.VISIBLE);
 
-        } else {            
+        } else {
+        	wakeLock.release();
+        	wakeLock = null;
+        	
             sc.stopCapture();
             sc = null;
             sp.edit().putInt("currentFile", currentFile + 1).commit();
