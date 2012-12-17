@@ -131,8 +131,8 @@ public class MainActivity extends Activity {
             progress.setVisibility(View.VISIBLE);
 
         } else {
-            wl = null;
             wl.release();
+            wl = null;
             sc.stopCapture();
             sc = null;
             sp.edit().putInt("currentFile", currentFile + 1).commit();
