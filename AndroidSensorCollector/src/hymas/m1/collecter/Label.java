@@ -6,7 +6,7 @@ package hymas.m1.collecter;
  */
 public enum Label {
 
-    walk, run, bike, car, buss, tram, train, rollerskate, skateboard, ski, flying;
+    walk, run, bike, car, bus, tram, train, rollerskate, skateboard, ski, flying;
 
     public static String[] getNames() {
         Label[] values = values();
