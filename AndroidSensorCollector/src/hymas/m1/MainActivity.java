@@ -4,16 +4,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Toast;
 import hymas.m1.collecter.Label;
 import hymas.m1.hardware.NoiseReduction;
 import hymas.m1.hardware.SensorCapture;
@@ -26,7 +25,7 @@ import java.util.List;
 /**
  * Handles the main activity of the application
  *
- * @author kiro
+ * @author Chirila Alexandru
  */
 public class MainActivity extends Activity {
 
@@ -39,6 +38,7 @@ public class MainActivity extends Activity {
     private Button button;
     private ProgressBar progress;
     private CheckBox gps;
+    private PowerManager.WakeLock wl;
 
     /**
      * Called when the activity is first created.
@@ -67,24 +67,11 @@ public class MainActivity extends Activity {
         rateSpin.setSelection(1);
 
         try {
-            nr = NoiseReduction.deserialize(openFileInput("nr.obj"));
-            System.err.println("nr = " + nr);
+            nr = NoiseReduction.deserialize(openFileInput("nr.obj"));            
         } catch (FileNotFoundException ex) {
             nr = null;
         }
-    }
-    
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
 
-        // Checks the orientation of the screen
-        // Rindurile de mai jos pot fi excluse
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            Toast.makeText(this, "landscape", Toast.LENGTH_SHORT).show();
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-            Toast.makeText(this, "portrait", Toast.LENGTH_SHORT).show();
-        }
     }
 
     /**
@@ -109,6 +96,12 @@ public class MainActivity extends Activity {
         SharedPreferences sp = getSharedPreferences("default.pref", Context.MODE_PRIVATE);
         int currentFile = sp.getInt("currentFile", 0);
         if (sc == null) {
+
+            //Wake lock
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "hymas.m1.MainActivity");
+            wl.acquire();
+
             Label label = Label.valueOf((String) labelSpin.getSelectedItem());
 
             File dir = getExternalFilesDir(null);
@@ -121,7 +114,9 @@ public class MainActivity extends Activity {
             button.setText("Stop Collecting");
             progress.setVisibility(View.VISIBLE);
 
-        } else {            
+        } else {
+            wl.release();
+            wl = null;
             sc.stopCapture();
             sc = null;
             sp.edit().putInt("currentFile", currentFile + 1).commit();
@@ -143,6 +138,14 @@ public class MainActivity extends Activity {
                 return SensorManager.SENSOR_DELAY_FASTEST;
             default:
                 return SensorManager.SENSOR_DELAY_NORMAL;
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (wl != null) {
+            wl.release();
         }
     }
 }
